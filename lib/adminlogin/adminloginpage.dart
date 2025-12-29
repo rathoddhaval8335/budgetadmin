@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 import '../Dashboard/AdminHome.dart';
+import '../Sharedpref/sharedpref.dart';
 import 'forgotpass.dart';
 
 class AdminLoginPage extends StatefulWidget {
@@ -14,9 +15,26 @@ class AdminLoginPage extends StatefulWidget {
 }
 
 class _AdminLoginPageState extends State<AdminLoginPage> {
-  final TextEditingController usernameController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
+  final TextEditingController usernameController = TextEditingController(text: "dhaval");
+  final TextEditingController passwordController = TextEditingController(text: "123456");
   bool isLoading = false;
+  final SharedPrefService _sharedPrefService = SharedPrefService();
+
+  @override
+  void initState() {
+    super.initState();
+    _checkLoginStatus();
+  }
+
+  void _checkLoginStatus() async {
+    bool isLoggedIn = await _sharedPrefService.getLoginStatus();
+    if (isLoggedIn && mounted) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => AdminHomePage()),
+      );
+    }
+  }
 
   void loginAdmin() async {
     setState(() => isLoading = true);
@@ -24,7 +42,7 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
     String username = usernameController.text.trim();
     String password = passwordController.text.trim();
 
-    if(username.isEmpty || password.isEmpty){
+    if (username.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Please enter username and password")),
       );
@@ -32,7 +50,6 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
       return;
     }
 
-   // var apiUrl = "http://192.168.43.192/BUDGET_APP/fd_admin_check.php";
     var apiUrl = ApiService.getUrl("fd_admin_check.php");
 
     try {
@@ -43,18 +60,26 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
 
       final data = jsonDecode(response.body);
 
-      if(data['status'] == "success"){
+      if (data['status'] == "success") {
+        // Save login status and username
+        await _sharedPrefService.saveLoginStatus(true);
+        await _sharedPrefService.saveUsername(username);
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(data['message'] ?? "Login successful")),
         );
+
         // Navigate to admin panel
-        Navigator.push(context, MaterialPageRoute(builder: (context)=>AdminHomePage()));
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => AdminHomePage()),
+        );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(data['message'] ?? "Invalid credentials")),
         );
       }
-    } catch(e) {
+    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Error: $e")),
       );

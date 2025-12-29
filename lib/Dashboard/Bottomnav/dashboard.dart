@@ -1,8 +1,10 @@
 import 'dart:convert';
+import 'package:budgetadmin/adminlogin/adminloginpage.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 import '../../Service/apiservice.dart';
+import '../../Sharedpref/sharedpref.dart';
 import '../Category/add_catgory.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -17,6 +19,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   double totalIncome = 0;
   double totalExpense = 0;
   bool isLoading = true;
+  final SharedPrefService _sharedPrefService = SharedPrefService();
 
   @override
   void initState() {
@@ -36,8 +39,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<void> fetchTotalUsers() async {
-    // String apiUrl = 'http://192.168.43.192/BUDGET_APP/fd_total_user.php';
-     String apiUrl = ApiService.getUrl("fd_total_user.php");
+    String apiUrl = ApiService.getUrl("fd_total_user.php");
 
     try {
       final response = await http.get(Uri.parse(apiUrl));
@@ -53,8 +55,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<void> fetchTotalIncome() async {
-    // String apiUrl = 'http://192.168.43.192/BUDGET_APP/total_income_ad.php';
-     String apiUrl = ApiService.getUrl("total_income_ad.php");
+    String apiUrl = ApiService.getUrl("total_income_ad.php");
     try {
       final response = await http.get(Uri.parse(apiUrl));
       if (response.statusCode == 200) {
@@ -69,8 +70,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<void> fetchTotalExpense() async {
-    //const String apiUrl = 'http://192.168.43.192/BUDGET_APP/total_expense_ad.php';
-     String apiUrl = ApiService.getUrl("total_expense_ad.php");
+    String apiUrl = ApiService.getUrl("total_expense_ad.php");
     try {
       final response = await http.get(Uri.parse(apiUrl));
       if (response.statusCode == 200) {
@@ -84,6 +84,42 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
+  // Show logout confirmation dialog
+  Future<void> _showLogoutDialog(BuildContext context) async {
+    return showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Logout"),
+          content: const Text("Are you sure you want to logout?"),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close dialog
+              },
+              child: const Text("Cancel", style: TextStyle(color: Colors.blue)),
+            ),
+            TextButton(
+              onPressed: () async {
+                // Clear shared preferences
+                await _sharedPrefService.clearAllData();
+
+                // Navigate to login page
+                Navigator.of(context).pop(); // Close dialog
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => const AdminLoginPage()),
+                      (route) => false,
+                );
+              },
+              child: const Text("Logout", style: TextStyle(color: Colors.red)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final remainingBalance = totalIncome - totalExpense;
@@ -94,9 +130,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
         title: const Text('Admin Dashboard'),
         centerTitle: true,
         actions: [
-          IconButton(onPressed: (){
-            Navigator.push(context, MaterialPageRoute(builder: (context)=>AddCategoryPage()));
-          }, icon: Icon(Icons.add))
+          IconButton(
+            onPressed: () {
+              _showLogoutDialog(context);
+            },
+            icon: const Icon(Icons.logout, color: Colors.black),
+          )
         ],
       ),
       body: isLoading
@@ -138,19 +177,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 crossAxisSpacing: 12,
                 mainAxisSpacing: 12,
                 children: [
-                  _buildDashboardCard('Total Users',
-                      totalUsers.toString(), Icons.people, Colors.blue),
-                  _buildDashboardCard('Total Income',
-                      '₹${totalIncome.toStringAsFixed(2)}', Icons.account_balance_wallet, Colors.green),
-                  _buildDashboardCard('Total Expense',
-                      '₹${totalExpense.toStringAsFixed(2)}', Icons.money_off, Colors.red),
-                  _buildDashboardCard('Remaining Balance',
-                      '₹${remainingBalance.toStringAsFixed(2)}', Icons.savings, Colors.orange),
+                  _buildDashboardCard('Total Users', totalUsers.toString(),
+                      Icons.people, Colors.blue),
+                  _buildDashboardCard('Total Income', '₹${totalIncome.toStringAsFixed(2)}',
+                      Icons.account_balance_wallet, Colors.green),
+                  _buildDashboardCard('Total Expense', '₹${totalExpense.toStringAsFixed(2)}',
+                      Icons.money_off, Colors.red),
+                  _buildDashboardCard('Remaining Balance', '₹${remainingBalance.toStringAsFixed(2)}',
+                      Icons.savings, Colors.orange),
                 ],
               ),
             ),
           ],
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(context, MaterialPageRoute(builder: (context) => AddCategoryPage()));
+        },
+        child: const Icon(Icons.add),
       ),
     );
   }
@@ -173,19 +218,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           CircleAvatar(
-              backgroundColor: color.withOpacity(0.15),
-              radius: 26,
-              child: Icon(icon, color: color, size: 30)),
+            backgroundColor: color.withOpacity(0.15),
+            radius: 26,
+            child: Icon(icon, color: color, size: 30),
+          ),
           const SizedBox(height: 12),
-          Text(title,
-              style: const TextStyle(
-                  fontSize: 14,
-                  color: Colors.black54,
-                  fontWeight: FontWeight.w500)),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 14,
+              color: Colors.black54,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
           const SizedBox(height: 8),
-          Text(value,
-              style: const TextStyle(
-                  fontSize: 20, fontWeight: FontWeight.bold)),
+          Text(
+            value,
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          ),
         ],
       ),
     );
