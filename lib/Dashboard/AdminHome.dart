@@ -34,9 +34,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
         },
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Dashboard'),
-          BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Users'),
-          BottomNavigationBarItem(icon: Icon(Icons.bar_chart), label: 'Reports'),
-        ],
+          BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Users'),],
       ),
     );
   }
