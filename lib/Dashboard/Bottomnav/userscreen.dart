@@ -25,7 +25,7 @@ class _UsersScreenState extends State<UsersScreen> {
 
   Future<void> fetchUsers() async {
     //const String apiUrl = 'http://192.168.43.192/BUDGET_APP/view_all_user.php';
-     String apiUrl = ApiService.getUrl("view_all_user.ph");
+     String apiUrl = ApiService.getUrl("view_all_user.php");
 
     try {
       final response = await http.get(Uri.parse(apiUrl));

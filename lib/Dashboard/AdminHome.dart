@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import 'Bottomnav/dashboard.dart';
-import 'Bottomnav/reportscreen.dart';
 import 'Bottomnav/userscreen.dart';
 
 
@@ -18,7 +17,6 @@ class _AdminHomePageState extends State<AdminHomePage> {
   final List<Widget> screens = [
     const DashboardScreen(),
     const UsersScreen(),
-    const ReportsScreen(),
   ];
 
   @override

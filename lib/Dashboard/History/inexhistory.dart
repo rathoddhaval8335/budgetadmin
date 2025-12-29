@@ -133,10 +133,6 @@ class _IncomeExpenseState extends State<IncomeExpense> {
           padding: const EdgeInsets.all(8.0),
           child: Column(
             children: [
-              Text(
-                '${widget.selectedType} - User ID: ${widget.userId}',
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
               if (errorMessage.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.only(top: 8.0),
